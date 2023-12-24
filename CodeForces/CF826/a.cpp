@@ -1,0 +1,42 @@
+#define _GLIBCXX_DEBUG
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef vector<int> VI;
+typedef vector<ll> VL;
+typedef vector<string> VS;
+typedef vector<VI> VVI;
+typedef vector<VL> VVL;
+#define _overload(_1, _2, _3, name, ...) name
+#define rep1(n) rep3(____, 0, n)
+#define rep2(i, n) rep3(i, 0, n)
+#define rep3(i, a, b) for (int i=(a); i<(b); i++)
+#define rep(...) _overload(__VA_ARGS__, rep3, rep2, rep1)(__VA_ARGS__)
+#define all(obj) (obj).begin(), (obj).end()
+
+const int INFI = 1 << 30;
+const ll INFL = 1LL << 60;
+// const ll MOD = 1000000007; // 1e9 + 7
+// const ll MOD = 998244353;
+
+int t_shirt(string s) {
+    int l = s.size(), x;
+    if (s[l-1] == 'M') x=0;
+    else if (s[l-1] == 'S') x=-1;
+    else x=1;
+    return x*(l-1) + x;
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    rep(t) {
+        string sa, sb;
+        cin >> sa >> sb;
+
+        int a=t_shirt(sa), b=t_shirt(sb);
+
+        a -= b;
+        printf(a > 0 ? ">\n" : (a < 0 ? "<\n" : "=\n"));
+    }
+    return 0;
+}

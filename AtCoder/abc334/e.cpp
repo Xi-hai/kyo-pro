@@ -1,6 +1,7 @@
-#define _GLIBCXX_DEBUG
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+using namespace atcoder;
 typedef long long ll;
 typedef vector<int> VI;
 typedef vector<ll> VL;
@@ -19,6 +20,7 @@ template <class T> using VVV = V<VV<T>>;
 
 const VI di = {-1, 0, 0, 1};
 const VI dj = {0, -1, 1, 0};
+const ll MOD = 998244353;
 
 template <typename T>
 bool chmax(T& a, const T& b) {
@@ -74,13 +76,13 @@ int main() {
     rep(i, h) cin >> grid[i];
 
     init_uf(h*w);
-    int cnt_red = 0;
+    ll count_red = 0;
     rep(i, h) {
         rep(j, w) {
             int x = i*w + j;
             if ( grid[i][j] == '.' ) {
                 par[x] = -1;
-                cnt_red++;
+                count_red++;
                 continue;
             }
             rep(k, 4) {
@@ -94,9 +96,9 @@ int main() {
     set<int> st;
     rep(x, h*w) st.insert(find_uf(x));
     st.erase(-1);
-    int count_connected = st.size();
+    ll count_connected = st.size();
 
-    int sum = 0;
+    ll sum = 0;
     rep(i, h) {
         rep(j, w) {
             if (grid[i][j] == '#') continue;
@@ -111,6 +113,7 @@ int main() {
         }
     }
 
-    // ans = sum / cnt_red;
+    ll ans = sum % MOD * inv_mod(count_red, MOD) % MOD;
+    cout << ans << "\n";
     return 0;
 }

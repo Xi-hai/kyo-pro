@@ -38,7 +38,70 @@ bool chmin(T& a, const T& b) {
     return false;
 }
 
+int H, W, D, K;
+VVI grid(200, VI(200, -1)); // ストレージの状態
+VVI data_loc(16000, VI(2)); // ファイルを構成するセクタの位置
+
+// セクタ(r1, c1)と(r2, c2)の入れ替え操作とコスト変化量の計算
+ll sector_swap(int r1, int c1, int r2, int c2) {
+    ll cost_diff = 0;
+    int idx1 = grid[r1][c1], idx2 = grid[r2][c2];
+
+    rep(j, 2) {
+        if (idx1 > 0) {
+            cost_diff -= abs(data_loc[idx1][j] - data_loc[idx1-1][j]);
+            if (idx2>=0) cost_diff += abs(data_loc[idx2][j] - data_loc[idx1-1][j]);
+        }
+        if (0 <= idx1 && idx1 < D-1) {
+            cost_diff -= abs(data_loc[idx1][j] - data_loc[idx1+1][j]);
+            if (idx2>=0) cost_diff += abs(data_loc[idx2][j] - data_loc[idx1+1][j]);
+        }
+        if (idx2 > 0) {
+            cost_diff -= abs(data_loc[idx2][j] - data_loc[idx2-1][j]);
+            if (idx1>=0) cost_diff += abs(data_loc[idx1][j] - data_loc[idx2-1][j]);
+        }
+        if (0 <= idx2 && idx2 < D-1) {
+            cost_diff -= abs(data_loc[idx2][j] - data_loc[idx2+1][j]);
+            if (idx1>=0) cost_diff += abs(data_loc[idx1][j] - data_loc[idx2+1][j]);
+        }
+    }
+
+    grid[r1][c1] = idx2;
+    grid[r2][c2] = idx1;
+    return cost_diff;
+}
+
 int main() {
-    
+    cin >> H >> W >> D >> K;
+    rep(i, D) {
+        int row, col;
+        cin >> row >> col;
+        data_loc[i] = {row, col};
+        grid[row][col] = i;
+    }
+
+    // 初期状態のコスト
+    ll load_cost = 0;
+    rep(i, 1, D) {
+        rep(j, 2) {
+            load_cost += abs(data_loc[i][j] - data_loc[i-1][j]);
+        }
+    }
+
+    // sector_swapの動作確認
+    rep(5) {
+        int r1, c1, r2, c2;
+        cin >> r1 >> c1 >> r2 >> c2;
+        load_cost += sector_swap(r1, c1, r2, c2);
+        cout << load_cost << "\n";
+    }
+
+    rep(i, H) {
+        rep(j, W) {
+            printf("%2d ", grid[i][j]);
+        }
+        printf("\n");
+    }
+    cout << load_cost << "\n";
     return 0;
 }

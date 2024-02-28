@@ -43,7 +43,7 @@ VVI grid(200, VI(200, -1)); // ストレージの状態
 VVI data_loc(16000, VI(2)); // ファイルを構成するセクタの位置
 
 // セクタ(r1, c1)と(r2, c2)を入れ替えた場合のコスト変化量の計算
-int sector_swap(int r1, int c1, int r2, int c2) {
+int cost_diff_calc(int r1, int c1, int r2, int c2) {
     int cost_diff = 0;
     int idx1 = grid[r1][c1], idx2 = grid[r2][c2];
 
@@ -71,6 +71,19 @@ int sector_swap(int r1, int c1, int r2, int c2) {
     return cost_diff;
 }
 
+// 実際にセクタ(r1, c1)と(r2, c2)を入れ替える
+void sector_swap(int r1, int c1, int r2, int c2) {
+    if (grid[r1][c1] >= 0) {
+        data_loc[ grid[r1][c1] ][0] = r2;
+        data_loc[ grid[r1][c1] ][1] = c2;
+    }
+    if (grid[r2][c2] >= 0) {
+        data_loc[ grid[r2][c2] ][0] = r1;
+        data_loc[ grid[r2][c2] ][1] = c1;
+    }
+    swap(grid[r1][c1], grid[r2][c2]);
+}
+
 int main() {
     cin >> H >> W >> D >> K;
     rep(i, D) {
@@ -88,30 +101,42 @@ int main() {
             load_cost += abs(data_loc[i][j] - data_loc[i-1][j]);
         }
     }
-    cout << "initial cost: " << load_cost << "\n";
 
-    // sector_swapの動作確認
-    // rep(5) {
-    //     int r1, c1, r2, c2;
-    //     cin >> r1 >> c1 >> r2 >> c2;
-    //     load_cost += sector_swap(r1, c1, r2, c2);
-    //     if (grid[r1][c1] >= 0) {
-    //         data_loc[ grid[r1][c1] ][0] = r2;
-    //         data_loc[ grid[r1][c1] ][1] = c2;
-    //     }
-    //     if (grid[r2][c2] >= 0) {
-    //         data_loc[ grid[r2][c2] ][0] = r1;
-    //         data_loc[ grid[r2][c2] ][1] = c1;
-    //     }
-    //     swap(grid[r1][c1], grid[r2][c2]);
-    //     rep(i, H) {
-    //         rep(j, W) {
-    //             printf("%2d ", grid[i][j]);
-    //         }
-    //         printf("\n");
-    //     }
-    //     cout << "cost: " << load_cost << "\n";
-    // }
+    // 前後の移動コストが高いセクタを優先
+    VVI swap_priority(D, VI(2, 0));
+    rep(i, D) {
+        swap_priority[i][1] = i;
+        rep(j, 2) {
+            if (i>0) {
+                swap_priority[i][0] += abs(data_loc[i][j] - data_loc[i-1][j]);
+            }
+            if (i<D-1) {
+                swap_priority[i][0] += abs(data_loc[i][j] - data_loc[i+1][j]);
+            }
+        }
+    }
+    sort(all(swap_priority), greater<VI>());
 
+    int cnt_swap = 0;
+    rep(i, K*2) {
+        if (cnt_swap>=K) break;
+        int v = swap_priority[i][1];
+        if (v==0) continue;
+        int r_prev = data_loc[v-1][0], c_prev = data_loc[v-1][1];
+        rep(j, 8) {
+            int nr = r_prev+dy8[j], nc = c_prev+dx8[j];
+            if (nr<0 || H<=nr || nc<0 || W<=nc) {
+                continue;
+            }
+            int diff = cost_diff_calc(data_loc[v][0], data_loc[v][1], nr, nc);
+            if (diff < -200) {
+                printf("%d %d %d %d\n", data_loc[v][0], data_loc[v][1], nr, nc);
+                load_cost += diff;
+                sector_swap(data_loc[v][0], data_loc[v][1], nr, nc);
+                cnt_swap++;
+                break;
+            }
+        }
+    }
     return 0;
 }

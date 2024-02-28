@@ -42,38 +42,32 @@ int H, W, D, K;
 VVI grid(200, VI(200, -1)); // ストレージの状態
 VVI data_loc(16000, VI(2)); // ファイルを構成するセクタの位置
 
-// セクタ(r1, c1)と(r2, c2)の入れ替え操作とコスト変化量の計算
+// セクタ(r1, c1)と(r2, c2)を入れ替えた場合のコスト変化量の計算
 int sector_swap(int r1, int c1, int r2, int c2) {
     int cost_diff = 0;
     int idx1 = grid[r1][c1], idx2 = grid[r2][c2];
 
     if (idx1 >= 0) {
-        if (idx1 > 0) {
+        if (idx1 > 0 && idx2+1 != idx1) {
             cost_diff -= abs(r1 - data_loc[idx1-1][0]) + abs(c1 - data_loc[idx1-1][1]);
             cost_diff += abs(r2 - data_loc[idx1-1][0]) + abs(c2 - data_loc[idx1-1][1]);
         }
-        if (idx1 < D-1) {
+        if (idx1 < D-1 && idx1+1 != idx2) {
             cost_diff -= abs(r1 - data_loc[idx1+1][0]) + abs(c1 - data_loc[idx1+1][1]);
             cost_diff += abs(r2 - data_loc[idx1+1][0]) + abs(c2 - data_loc[idx1+1][1]);
         }
-        data_loc[idx1][0] = r2;
-        data_loc[idx1][1] = c2;
     }
     if (idx2 >= 0) {
-        if (idx2 > 0) {
+        if (idx2 > 0 && idx1+1 != idx2) {
             cost_diff -= abs(r2 - data_loc[idx2-1][0]) + abs(c2 - data_loc[idx2-1][1]);
             cost_diff += abs(r1 - data_loc[idx2-1][0]) + abs(c1 - data_loc[idx2-1][1]);
         }
-        if (idx2 < D-1) {
+        if (idx2 < D-1 && idx2+1 != idx1) {
             cost_diff -= abs(r2 - data_loc[idx2+1][0]) + abs(c2 - data_loc[idx2+1][1]);
             cost_diff += abs(r1 - data_loc[idx2+1][0]) + abs(c1 - data_loc[idx2+1][1]);
         }
-        data_loc[idx2][0] = r1;
-        data_loc[idx2][1] = c1;
     }
 
-    grid[r1][c1] = idx2;
-    grid[r2][c2] = idx1;
     return cost_diff;
 }
 
@@ -94,13 +88,22 @@ int main() {
             load_cost += abs(data_loc[i][j] - data_loc[i-1][j]);
         }
     }
-    // cout << "initial cost: " << load_cost << "\n";
+    cout << "initial cost: " << load_cost << "\n";
 
     // sector_swapの動作確認
     // rep(5) {
     //     int r1, c1, r2, c2;
     //     cin >> r1 >> c1 >> r2 >> c2;
     //     load_cost += sector_swap(r1, c1, r2, c2);
+    //     if (grid[r1][c1] >= 0) {
+    //         data_loc[ grid[r1][c1] ][0] = r2;
+    //         data_loc[ grid[r1][c1] ][1] = c2;
+    //     }
+    //     if (grid[r2][c2] >= 0) {
+    //         data_loc[ grid[r2][c2] ][0] = r1;
+    //         data_loc[ grid[r2][c2] ][1] = c1;
+    //     }
+    //     swap(grid[r1][c1], grid[r2][c2]);
     //     rep(i, H) {
     //         rep(j, W) {
     //             printf("%2d ", grid[i][j]);
@@ -109,5 +112,6 @@ int main() {
     //     }
     //     cout << "cost: " << load_cost << "\n";
     // }
+
     return 0;
 }

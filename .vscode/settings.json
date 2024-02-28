@@ -3,6 +3,7 @@
         "iostream": "cpp",
         "unordered_map": "cpp",
         "typeindex": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "vector": "cpp"
     }
 }

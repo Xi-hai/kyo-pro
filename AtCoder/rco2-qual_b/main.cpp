@@ -118,7 +118,7 @@ int main() {
     sort(all(swap_priority), greater<VI>());
 
     int cnt_swap = 0;
-    rep(i, K*2) {
+    rep(i, D) {
         if (cnt_swap>=K) break;
         int v = swap_priority[i][1];
         if (v==0) continue;

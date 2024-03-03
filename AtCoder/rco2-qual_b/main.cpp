@@ -25,6 +25,12 @@ const VI dy = {0, 1, 0, -1};
 const VI dx = {1, 0, -1, 0};
 const VI dy8 = {0, 1, 1, 1, 0, -1, -1, -1};
 const VI dx8 = {1, 1, 0, -1, -1, -1, 0, 1};
+const VI dy36 = {0, 1, 1, 1, 0, -1, -1, -1,
+                0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2, -1,
+                0, 0, 1, -1, 0, 0, 1, -1, 3, 4, 3, 3, -3, -4, -3, -3};
+const VI dx36 = {1, 1, 0, -1, -1, -1, 0, 1,
+                2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2, -1, 0, 1, 2, 2,
+                3, 4, 3, 3, -3, -4, -3, -3, 0, 0, 1, -1, 0, 0, 1, -1};
 
 template <typename T>
 bool chmax(T& a, const T& b) {
@@ -122,9 +128,10 @@ int main() {
         if (cnt_swap>=K) break;
         int v = swap_priority[i][1];
         if (v==0) continue;
+        bool flg_swapped = false;
         int r_prev = data_loc[v-1][0], c_prev = data_loc[v-1][1];
-        rep(j, 8) {
-            int nr = r_prev+dy8[j], nc = c_prev+dx8[j];
+        rep(j, 36) {
+            int nr = r_prev+dy36[j], nc = c_prev+dx36[j];
             if (nr<0 || H<=nr || nc<0 || W<=nc) {
                 continue;
             }
@@ -134,7 +141,27 @@ int main() {
                 load_cost += diff;
                 sector_swap(data_loc[v][0], data_loc[v][1], nr, nc);
                 cnt_swap++;
+                flg_swapped = true;
                 break;
+            }
+        }
+
+        if (!flg_swapped && i<D-1) {
+            int r_next = data_loc[i+1][0], c_next = data_loc[i+1][1];
+            rep(j, 36) {
+                int nr = r_next+dy36[j], nc = c_next+dx36[j];
+                if (nr<0 || H<=nr || nc<0 || W<=nc) {
+                    continue;
+                }
+                int diff = cost_diff_calc(data_loc[v][0], data_loc[v][1], nr, nc);
+                if (diff < -200) {
+                    printf("%d %d %d %d\n", data_loc[v][0], data_loc[v][1], nr, nc);
+                    load_cost += diff;
+                    sector_swap(data_loc[v][0], data_loc[v][1], nr, nc);
+                    cnt_swap++;
+                    flg_swapped = true;
+                    break;
+                }
             }
         }
     }

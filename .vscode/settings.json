@@ -4,6 +4,7 @@
         "unordered_map": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "chrono": "cpp"
     }
 }

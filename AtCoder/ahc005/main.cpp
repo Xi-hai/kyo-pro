@@ -111,8 +111,8 @@ int main() {
         }
     }
 
-    // string move = "UULLDDDDRRRRRRUULLLL";
-    // cout << "score: " << calc_score(si, sj, cnt_road, move) << "\n";
+    string move = "UULLDDDDRRRRRRUULLLL";
+    cout << "score: " << calc_score(si, sj, cnt_road, move) << "\n";
     // auto current = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();;
     // cout << "time: " << current - start << " ms\n";
     return 0;

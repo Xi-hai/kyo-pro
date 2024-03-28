@@ -156,7 +156,7 @@ void singleday(mt19937& mt, int t_lim, int d, int threshold) {
 }
 
 int main() {
-    auto start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    // auto start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     random_device rd;
     mt19937 mt(rd());
 
@@ -164,18 +164,29 @@ int main() {
     cin >> W >> D >> N;
     rep(d, D) rep(k, N) cin >> desired[d][k];
     grid = VVI(W, VI(W, -1));
+    VVV<int> mp_itr(D, VVI(N, VI(2)));
 
     initialize(mt);
-    singleday(mt, 2500, 0, 5);
-    VVI mp_itr(N, VI(2));
+    singleday(mt, 800, 0, 5);
     rep(k, N) {
         int area = (rent[0][k][2] - rent[0][k][0]) * (rent[0][k][3] - rent[0][k][1]);
-        mp_itr[k][0] = area, mp_itr[k][1] = k;
+        mp_itr[0][k][0] = area;
+        mp_itr[0][k][1] = k;
     }
-    sort(all(mp_itr));
+    sort(all(mp_itr[0]));
+    rep(d, 1, D) {
+        rep(k, N) rent[d][k] = rent[d-1][mp_itr[d-1][k][1]];
+        singleday(mt, 2100/(D-1), d, 10);
+        rep(k, N) {
+            int area = (rent[d][k][2] - rent[d][k][0]) * (rent[d][k][3] - rent[d][k][1]);
+            mp_itr[d][k][0] = area;
+            mp_itr[d][k][1] = k;
+        }
+        sort(all(mp_itr[d]));
+    }
 
     // output
-    rep(d, D) rep(k, N) rep(t, 4) cout << rent[0][mp_itr[k][1]][t] << (t<3 ? " " : "\n");
-    // rep(d, D) rep(k, N) rep(t, 4) cout << rent[0][k][t] << (t<3 ? " " : "\n");
+    rep(d, D) rep(k, N) rep(t, 4) cout << rent[d][ mp_itr[d][k][1] ][t] << (t<3 ? " " : "\n");
+    // rep(d, D) rep(k, N) rep(t, 4) cout << rent[d][k][t] << (t<3 ? " " : "\n");
     return 0;
 }

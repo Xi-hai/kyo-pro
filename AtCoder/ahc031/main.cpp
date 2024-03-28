@@ -63,45 +63,91 @@ void initialize(mt19937& mt) {
     }
 }
 
-void firstday(mt19937& mt, int64_t& start, int t_lim) {
+bool extendable(int axis, int coor_fix, int& left, int& right) {
+    bool res = true;
+    if (axis == 0) {
+        rep(i, left, right) {
+            if (grid[i][coor_fix] != -1) {
+                res = false;
+                break;
+            }
+        }
+    } else {
+        rep(j, left, right) {
+            if (grid[coor_fix][j] != -1) {
+                res = false;
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+void singleday(mt19937& mt, int t_lim, int d, int threshold) {
+    auto start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    uniform_int_distribution<int> dist_k(0, N-1);
+    uniform_int_distribution<int> dist_op(0, 7);
+    uniform_int_distribution<int> dist_prob(0, 99);
     while (now - start < t_lim) {
-        uniform_int_distribution<int> dist_k(0, N-1);
-        uniform_int_distribution<int> dist_dir(0, 3);
         int k = dist_k(mt);
-        int area = (rent[0][k][2] - rent[0][k][0]) * (rent[0][k][3] - rent[0][k][1]);
-        int direction = dist_dir(mt);
-        int p_i = rent[0][k][0], p_j = rent[0][k][1], q_i = rent[0][k][2]-1, q_j = rent[0][k][3]-1;
-        if (area >= desired[0][k]) {
-            goto NEXT;
-        }
-        if (direction == 0) { // 上に伸ばす
+        int operation = dist_op(mt);
+        int p_i = rent[d][k][0], p_j = rent[d][k][1], q_i = rent[d][k][2], q_j = rent[d][k][3];
+        int area = (q_i - p_i) * (q_j - p_j);
+        int prob = dist_prob(mt);
+
+        if (operation%4 == 0) { // 上に伸ばす
             if (p_i == 0) goto NEXT;
-            rep(j, p_j, q_j) if (grid[p_i-1][j] != -1) goto NEXT;
-            rent[0][k][0]--;
-            p_i--;
-            rep(j, p_j, q_j) grid[p_i][j] = k;
+            if (!extendable(1, p_i-1, p_j, q_j)) goto NEXT;
+
+            if (area < desired[d][k] || prob < threshold) {
+                rent[d][k][0]--, p_i--;
+                rep(j, p_j, q_j) grid[p_i][j] = k;
+            }
         }
-        else if (direction == 1) { // 左に伸ばす
+        else if (operation%4 == 1) { // 左に伸ばす
             if (p_j == 0) goto NEXT;
-            rep(i, p_i, q_i) if (grid[i][p_j-1] != -1) goto NEXT;
-            rent[0][k][1]--;
-            p_j--;
-            rep(i, p_i, q_i) grid[i][p_j] = k;
+            if (!extendable(0, p_j-1, p_i, q_i)) goto NEXT;
+
+            if (area < desired[d][k] || prob < threshold) {
+                rent[d][k][1]--, p_j--;
+                rep(i, p_i, q_i) grid[i][p_j] = k;
+            }
         }
-        else if (direction == 2) { // 下に伸ばす
-            if (q_i == W-1) goto NEXT;
-            rep(j, p_j, q_j) if (grid[q_i+1][j] != -1) goto NEXT;
-            rent[0][k][2]++;
-            q_i++;
-            rep(j, p_j, q_j) grid[q_i][j] = k;
+        else if (operation%4 == 2) { // 下に伸ばす
+            if (q_i == W) goto NEXT;
+            if (!extendable(1, q_i, p_j, q_j)) goto NEXT;
+
+            if (area < desired[d][k] || prob < threshold) {
+                rent[d][k][2]++, q_i++;
+                rep(j, p_j, q_j) grid[q_i-1][j] = k;
+            }
         }
-        else if (direction == 3) { // 右に伸ばす
-            if (q_j == W-1) goto NEXT;
-            rep(i, p_i, q_i) if (grid[i][q_j+1] != -1) goto NEXT;
-            rent[0][k][3]++;
-            q_j++;
-            rep(i, p_i, q_i) grid[i][q_j] = k;
+        else if (operation%4 == 3) { // 右に伸ばす
+            if (q_j == W) goto NEXT;
+            if (!extendable(0, q_j, p_i, q_i)) goto NEXT;
+
+            if (area < desired[d][k] || prob < threshold) {
+                rent[d][k][3]++, q_j++;
+                rep(i, p_i, q_i) grid[i][q_j-1] = k;
+            }
+        }
+
+        if (q_i - p_i > 1 && (operation == 4 || prob < threshold)) { // 下を縮める
+            rent[d][k][2]--, q_i--;
+            rep(j, p_j, q_j) grid[q_i][j] = -1;
+        }
+        else if (q_j - p_j > 1 && (operation == 5 || prob < threshold)) { // 右を縮める
+            rent[d][k][3]--, q_j--;
+            rep(i, p_i, q_i) grid[i][q_j] = -1;
+        }
+        else if (q_i - p_i > 1 && (operation == 6 || prob < threshold)) { // 上を縮める
+            rent[d][k][0]++, p_i++;
+            rep(j, p_j, q_j) grid[p_i-1][j] = -1;
+        }
+        else if (q_j - p_j > 1 && (operation == 7 || prob < threshold)) { // 左を縮める
+            rent[d][k][1]++, p_j++;
+            rep(i, p_i, q_i) grid[i][p_j-1] = -1;
         }
 
         NEXT:
@@ -120,9 +166,16 @@ int main() {
     grid = VVI(W, VI(W, -1));
 
     initialize(mt);
-    firstday(mt, start, 500);
+    singleday(mt, 2500, 0, 5);
+    VVI mp_itr(N, VI(2));
+    rep(k, N) {
+        int area = (rent[0][k][2] - rent[0][k][0]) * (rent[0][k][3] - rent[0][k][1]);
+        mp_itr[k][0] = area, mp_itr[k][1] = k;
+    }
+    sort(all(mp_itr));
 
     // output
-    rep(d, D) rep(k, N) rep(t, 4) cout << rent[0][k][t] << (t<3 ? " " : "\n");
+    rep(d, D) rep(k, N) rep(t, 4) cout << rent[0][mp_itr[k][1]][t] << (t<3 ? " " : "\n");
+    // rep(d, D) rep(k, N) rep(t, 4) cout << rent[0][k][t] << (t<3 ? " " : "\n");
     return 0;
 }
